@@ -1,76 +1,30 @@
-import socket
-from typing import Optional
-
-from scapy.all import ICMP, IP, Packet, sniff
+from scapy.all import Packet, sniff
 
 
-def _resolve_hostname(hostname: str) -> Optional[str]:
-    """Resolve hostname to IP address.
+def receive_target_packet() -> Packet:
+    """Sniffs and receives a single target ICMP packet
+    that is sent by `icmp_sender.py`.
 
-    Args:
-        hostname (str): The hostname to resolve.
-
-    Returns:
-        Optional[str]: The IP address if successfully resolved, None otherwise.
-    """
-    try:
-        return socket.gethostbyname(hostname)
-    except socket.gaierror:
-        return None
-
-
-def receive_icmp_packet() -> Packet:
-    """Sniffs for a single ICMP packet.
-
-    Returns:
-        Packet: The sniffed ICMP packet.
-    """
-    packets = sniff(filter="icmp", count=1)
-    if packets:
-        return packets[0]
-
-
-def is_target_packet(packet: Packet) -> bool:
-    """Check for the conditions to ensure that the packet
-    is the one sent by `icmp_sender.py`.
-
-    Namely the following conditions are checked:
+    The packet is filtered by the following conditions:
 
     1. Sent by the sender host to receiver host
     2. It has the TTL value of 1
     3. It is an ICMP echo-request packet
 
-    Args:
-        packet (Packet): The packet to check.
-
     Returns:
-        bool: The return value. True if target packet, False otherwise.
+        Packet: The received ICMP target packet.
     """
-    if IP not in packet or ICMP not in packet:
-        return False
-
-    from_sender = packet[IP].src == _resolve_hostname("sender")
-    to_receiver = packet[IP].dst == _resolve_hostname("receiver")
-    icmp_echo = packet[ICMP].type == 8
-    ttl1 = packet[IP].ttl == 1
-    return all([from_sender, to_receiver, icmp_echo, ttl1])
-
-
-def receive_target_packet() -> Packet:
-    """Waits to receive the ICMP packet sent by `icmp_sender.py`
-    and returns it.
-
-    Returns:
-        Packet: The received target packet.
-    """
-    while True:
-        packet = receive_icmp_packet()
-        if is_target_packet(packet):
-            return packet
+    filter = "icmp"
+    filter += " and src host sender"
+    filter += " and dst host receiver"
+    filter += " and ip[8] == 1"
+    filter += " and icmp[icmptype] == icmp-echo"
+    packets = sniff(filter=filter, count=1)
+    return packets[0]
 
 
 def print_received() -> None:
-    """Receives and prints the ICMP packet sent by `icmp_sender.py`"""
+    """Receives and prints the target ICMP packet sent by `icmp_sender.py`"""
     target_packet = receive_target_packet()
     target_packet.show()
 
