@@ -33,7 +33,9 @@ def receive_icmp_packet() -> Packet:
 def is_target_packet(packet: Packet) -> bool:
     """Check for the conditions to ensure that the packet
     is the one sent by `icmp_sender.py`.
+
     Namely the following conditions are checked:
+
     1. Sent by the sender host to receiver host
     2. It has the TTL value of 1
     3. It is an ICMP echo-request packet
