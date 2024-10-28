@@ -11,9 +11,9 @@ class Receiver:
     def _format_callback(self, packet: Packet) -> Optional[str]:
         """Formats the output to be displayed for the packet.
 
-        This callback function is intended to be used as an argument to `scapy.sendrecv.sniff`.
+        This callback function is intended to be used as an argument to `scapy.sendrecv.sniff()`.
         Note that the ttl-based filtering (ttl=1) is done here instead of `filter` argument
-        to `scapy.sendrecv.sniff` due to the limatations of Berkeley Packet Filter syntax.
+        to `scapy.sendrecv.sniff()` due to the limitations of Berkeley Packet Filter syntax.
 
 
         Returns:
