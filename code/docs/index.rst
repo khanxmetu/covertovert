@@ -6,7 +6,21 @@
 Basic ICMP Documentation
 ========================
 
-Please add your names and group ID here by editing `index.rst` in the docs folder.
+Authors
+=======
+
+Assignment Group 7
+==================
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Student ID
+   * - Abdul Rafey Khan
+     - 2650158
+   * - Hakan Çakmak
+     - 2699270
 
 
 .. toctree::
