@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyCovertChannel &mdash; Covert Channel 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Covert Channel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Covert Channel</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Covert Channel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MyCovertChannel</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MyCovertChannel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">CovertChannelBase</span> <span class="kn">import</span> <span class="n">CovertChannelBase</span>
+<span class="kn">from</span> <span class="nn">scapy.all</span> <span class="kn">import</span> <span class="n">IP</span><span class="p">,</span> <span class="n">TCP</span><span class="p">,</span> <span class="n">sniff</span><span class="p">,</span> <span class="n">conf</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<div class="viewcode-block" id="MyCovertChannel">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">MyCovertChannel</span><span class="p">(</span><span class="n">CovertChannelBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    - You are not allowed to change the file name and class name.</span>
+<span class="sd">    - You can edit the class in any way you want (e.g. adding helper functions); however, there must be a &quot;send&quot; and a &quot;receive&quot; function, the covert channel will be triggered by calling these functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        - You can edit __init__.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Variables to keep track of receiver state</span>
+        <span class="c1"># Whether receiver should be stopped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Count of bits received for the current character</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitcnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Current bitstring for the current character</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitstring</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="c1"># Message being received by the receiver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Disable Scapy verbose mode </span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">verb</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="MyCovertChannel.bit_to_random_code">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.bit_to_random_code">[docs]</a>
+    <span class="k">def</span> <span class="nf">bit_to_random_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bitchr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a random integer code between [0, 255] based on the given bitvalue.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            bitchr (str): Bit character in string representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Random integer code according to the bitvalue.</span>
+<span class="sd">            Bitvalue: 0 =&gt; returns random integer in [0, 127].</span>
+<span class="sd">            Bitvalue: 1 =&gt; returns random integer in [128, 255].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">bitchr</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">127</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MyCovertChannel.code_to_bit">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.code_to_bit">[docs]</a>
+    <span class="k">def</span> <span class="nf">code_to_bit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the bitvalue corresponding to the given code.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            code (int): Integer code between [0, 255]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Bit character in string representation according to the given code.</span>
+<span class="sd">            Code: [0, 127] =&gt; returns &quot;0&quot;.</span>
+<span class="sd">            Code: [128, 255] =&gt; returns &quot;1&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">code</span> <span class="o">&lt;=</span> <span class="mi">127</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;0&quot;</span>
+        <span class="k">elif</span> <span class="mi">128</span> <span class="o">&lt;=</span> <span class="n">code</span> <span class="o">&lt;=</span> <span class="mi">255</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;1&quot;</span></div>
+
+
+<div class="viewcode-block" id="MyCovertChannel.send">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.send">[docs]</a>
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">,</span> <span class="n">dst_ip</span><span class="p">,</span> <span class="n">dst_port</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        - A random binary message is constructed and logged into the file.</span>
+<span class="sd">        - The bits of the binary message are processed, 2 bits in each pass.</span>
+<span class="sd">        - Each bit is transformed into randomly generated 8-bit code.</span>
+<span class="sd">        - The codes for the 2 bits are combined into a single 16-bit value using bitshifting.</span>
+<span class="sd">        - A packet is constructed and this value is used as the TCP source port value which is a 16-bit field.</span>
+<span class="sd">        - Therefore, 2 bits of the original message are transmitted per each packet.</span>
+<span class="sd">        - The tested throughput using github codespaces is: 128 bits in 2.298 secs =&gt; 55.7 bps</span>
+
+
+<span class="sd">        Each bit is encoded as follows:</span>
+<span class="sd">        - A random integer code is generated based on the given bitvalue.</span>
+<span class="sd">        - If the bitvalue is 0: a random integer in [0, 127].</span>
+<span class="sd">        - If the bitvalue is 1: a random integer in [128, 255].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">binary_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_random_binary_message_with_logging</span><span class="p">(</span><span class="n">log_file_name</span><span class="p">)</span>
+
+        <span class="c1"># Traverse through the binary message with a stride of 2.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary_message</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Extract the 2 bits from the binary message starting at the offset i and encode them.</span>
+            <span class="n">bit1_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_to_random_code</span><span class="p">(</span><span class="n">binary_message</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">bit2_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_to_random_code</span><span class="p">(</span><span class="n">binary_message</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># Combine the two encoded values (8-bits each) into single value 16 bit</span>
+            <span class="c1"># We achieve this by shifting the first encoded value by 8 bits to left</span>
+            <span class="c1"># and add the second encoded value.</span>
+            <span class="n">src_port</span> <span class="o">=</span> <span class="p">(</span><span class="n">bit1_code</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">bit2_code</span>
+
+            <span class="c1"># Make TCP packet, put the encoded value in TCP source port field and send.</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="n">dst_ip</span><span class="p">)</span>
+            <span class="n">tcp</span> <span class="o">=</span> <span class="n">TCP</span><span class="p">(</span><span class="n">sport</span><span class="o">=</span><span class="n">src_port</span><span class="p">,</span> <span class="n">dport</span><span class="o">=</span><span class="n">dst_port</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">ip</span> <span class="o">/</span> <span class="n">tcp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MyCovertChannel.recv_message_builder">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.recv_message_builder">[docs]</a>
+    <span class="k">def</span> <span class="nf">recv_message_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Extract the encoded value from the TCP source port field.</span>
+        <span class="n">src_port</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;TCP&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sport</span>
+
+        <span class="c1"># Extract the first encoded value by shifting 8-bits to left.</span>
+        <span class="n">bit1_code</span> <span class="o">=</span> <span class="n">src_port</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+        <span class="c1"># Extract the second encoded value by selecting on right-most 8 bits.</span>
+        <span class="n">bit2_code</span> <span class="o">=</span> <span class="n">src_port</span> <span class="o">&amp;</span> <span class="mh">0xFF</span>
+
+        <span class="c1"># Convert the value to the corresponding bitvalues.</span>
+        <span class="n">bit1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_to_bit</span><span class="p">(</span><span class="n">bit1_code</span><span class="p">)</span>
+        <span class="n">bit2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_to_bit</span><span class="p">(</span><span class="n">bit2_code</span><span class="p">)</span>
+
+        <span class="c1"># Append the bitvalues to bitstring</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitstring</span> <span class="o">+=</span> <span class="n">bit1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitstring</span> <span class="o">+=</span> <span class="n">bit2</span>
+
+        <span class="c1"># Increment bit count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitcnt</span> <span class="o">+=</span> <span class="mi">2</span>
+
+        <span class="c1"># If all the bits of character are received</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitcnt</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="n">char</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_eight_bits_to_character</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_bitstring</span><span class="p">)</span>
+            <span class="c1"># Signal the receiver to stop receiving after character received is a full-stop &quot;.&quot;</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Append the character to the message being built</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">+=</span> <span class="n">char</span>
+
+            <span class="c1"># Reset the bitstring state for the new character to be read</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitcnt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_bitstring</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="MyCovertChannel.receive">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.receive">[docs]</a>
+    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">,</span> <span class="n">src_ip</span><span class="p">,</span> <span class="n">dst_ip</span><span class="p">,</span> <span class="n">dst_port</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        - Sniff for the packets filtered by their transport type: TCP, source IP: src_ip, destination IP: dst_ip, destination port: dst_port</span>
+<span class="sd">        - Process each packet with `recv_message_builder` callback.</span>
+<span class="sd">        - Stop the packet if `self.stop_flag` is set to True</span>
+
+<span class="sd">        The processing of each packet is done as follows:</span>
+<span class="sd">        - The encoded value from the TCP source port field is extracted.</span>
+<span class="sd">        - Two encoded values are decoded corresponding to two bits of the message.</span>
+<span class="sd">        - The bitvalues are appended to the bitstring which keeps track of all the bits for the current character being received</span>
+<span class="sd">        - If the length of bitstring reaches 8, meaning the character is fully received. The bitstring is converted from binary to character and appended to the message being received. </span>
+<span class="sd">        - The receiver stops after reading the full-stop &quot;.&quot; as it would be the last character of the message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pktfilter</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;tcp and src host &quot;</span>
+            <span class="o">+</span> <span class="n">src_ip</span>
+            <span class="o">+</span> <span class="s2">&quot; and dst host &quot;</span>
+            <span class="o">+</span> <span class="n">dst_ip</span>
+            <span class="o">+</span> <span class="s2">&quot; and dst port &quot;</span>
+            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_port</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">sniff</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="n">pktfilter</span><span class="p">,</span>
+            <span class="n">prn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">recv_message_builder</span><span class="p">,</span>
+            <span class="n">stop_filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># The message is logged after being fully received.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_message</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, METU - Computer Engineering Department.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
