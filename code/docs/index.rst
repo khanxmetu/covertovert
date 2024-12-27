@@ -1,10 +1,13 @@
-.. Basic ICMP documentation master file, created by
-   sphinx-quickstart on Fri Oct 18 16:20:21 2024.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Covert Channel documentation
+============================
 
-Basic ICMP Documentation
-========================
+Project URL
+===========
+The source code and project details are available at:
+https://github.com/khanxmetu/covertovert
+
+**Note:** Phase1 has been moved to the branch `phase1` at:
+https://github.com/khanxmetu/covertovert/tree/phase1
 
 Authors
 =======

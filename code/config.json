@@ -1,0 +1,18 @@
+{
+  "covert_channel_code": "CSC-PSV-TCP-SP",
+  "send": {
+    "parameters": {
+      "dst_ip": "172.18.0.3",
+      "dst_port": 1234,
+      "log_file_name": "Sender.log"
+    }
+  },
+  "receive": {
+    "parameters": {
+      "src_ip": "172.18.0.2",
+      "dst_ip": "172.18.0.3",
+      "dst_port": 1234,
+      "log_file_name": "Receiver.log"
+    }
+  }
+}
